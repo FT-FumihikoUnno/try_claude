@@ -1,0 +1,54 @@
+name: Claude AI Assistant
+
+on:
+  # Issue/PRへのコメント時
+  issue_comment:
+    types: [created]
+  
+  # PRレビューコメント時
+  pull_request_review_comment:
+    types: [created]
+  
+  # Issue作成時・アサイン時
+  issues:
+    types: [opened, assigned]
+  
+  # PRレビュー投稿時
+  pull_request_review:
+    types: [submitted]
+  
+  # PR作成・更新時
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write        # コード変更を可能に
+  pull-requests: write   # PRへのコメント・変更を可能に
+  issues: write          # Issueへのコメントを可能に
+  id-token: write        # OIDCトークン用
+
+jobs:
+  claude-response:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 全履歴を取得
+      
+      # Claude Code Action を実行
+      - name: Run Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          # API認証
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          
+          # トリガーフレーズ(デフォルト: @claude)
+          trigger_phrase: "@claude"
+          
+          # Claudeの設定
+          claude_args: |
+            --model claude-sonnet-4-20250514
+            --max-turns 15
